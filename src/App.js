@@ -55,27 +55,27 @@ import Register from './components/Register/Register';
 
   }
 
-
+const initialState = {
+      input: '',
+      imageUrl: '',
+      box: {},
+      route: 'signin',
+      isSignedIn: false,
+      user: {
+        id: "",
+        name: "",
+        email: "",
+        entries: 0,
+        joined: ""
+      }
+}
 
 class App extends Component {
 
   constructor() {
     super();
 
-    this.state = {
-      input: '',
-      imageUrl: '',
-      box: {},
-      route: 'signin',
-      isSignedIn: false
-      // user: {
-      //   id: "",
-      //   name: "",
-      //   email: "",
-      //   entries: 0,
-      //   joined: ""
-      // }
-    }
+    this.state = initialState
   }
 
   // componentDidMount() {
@@ -84,17 +84,17 @@ class App extends Component {
   //   .then(console.log)
   // }
 
-  // loadUser = (data) => {
-  //   this.setState({
-  //     user: {
-  //       id: data.id,
-  //       name: data.name,
-  //       email: data.email,
-  //       entries: data.entries,
-  //       joined: data.joined
-  //     }
-  //   })
-  // }
+  loadUser = (data) => {
+    this.setState({
+      user: {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        entries: data.entries,
+        joined: data.joined
+      }
+    })
+  }
 
   calculateFaceLocation = (data) => {
 
@@ -125,27 +125,28 @@ onButtonSubmit = () => {
   fetch("https://api.clarifai.com/v2/models/" + 'face-detection' + "/outputs", returnClarifaiRequestOptions(this.state.input))
   .then(response => response.json())
   .then(result => {
-    // if (result) {
-    //   fetch('http://localhost:3000/image', {
-    //     method: 'put',
-    //     headers: {'Content-Type': 'application/json'},
-    //     body: JSON.stringify({
-    //       id: this.state.user.id
-    //     })
-    //   })
-    //   .then( response => response.json())
-    //   .then( count => {
-    //     this.setState(Object.assign(this.state.user, {entries: count}))
-    //   })
-    // } 
+    if (result) {
+      fetch('http://localhost:3000/image', {
+        method: 'put',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          id: this.state.user.id
+        })
+      })
+      .then( response => response.json())
+      .then( count => {
+        this.setState(Object.assign(this.state.user, {entries: count}))
+      })
+      .catch(console.log)
+    } 
     this.displayFaceBox(this.calculateFaceLocation(result))
   })
-  .catch(error => console.log('error', error));
+  .catch(error => console.log('clarifai api fails'));
 }
 
 onRouteChange = (route) => {
   if( route === 'signout') {
-    this.setState( {isSignedIn: false} )
+    this.setState(initialState)
   }
   else if( route === 'home') {
     this.setState({isSignedIn: true})
@@ -169,7 +170,7 @@ onRouteChange = (route) => {
         <div>
         <Logo />
         {/* <Rank  name={this.state.user.name} entries={this.state.user.entries}/> */}
-        <Rank name='jamal' entries='0' />
+        <Rank name={this.state.user.name} entries={this.state.user.entries} />
         <ImageLinkForm  onInputChange={this.onInputChange} onButtonSubmit={this.onButtonSubmit}/>
         <FaceRecognition  imageUrl={this.state.imageUrl} box={this.state.box}/>
     </div>
@@ -177,9 +178,9 @@ onRouteChange = (route) => {
         :
         (
           this.state.route === 'signin' ?
-          <Signin onRouteChange={this.onRouteChange} />  
+          <Signin loadUser={this.loadUser} onRouteChange={this.onRouteChange} />  
            :
-           <Register onRouteChange={this.onRouteChange}/>
+           <Register loadUser={this.loadUser} onRouteChange={this.onRouteChange}/>
         )
               
        

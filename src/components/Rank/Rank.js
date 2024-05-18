@@ -10,7 +10,7 @@ class Rank extends React.Component {
         return (
             <div>
                 <div className='f3 white'>
-                    {`${name} your current Rank is ....`}
+                    {`${name} your current entry count is ....`}
                 </div>
                 <div className='f1 white'>
                     {`${entries}`}
